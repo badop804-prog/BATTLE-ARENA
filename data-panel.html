@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FF Arena - Data Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--blue:#00BFFF;--blue2:#0088cc;--dark:#07070d;--card:#111118;--card2:#1a1a25;--text:#e8e8e8;--muted:#666;--green:#00FF88;--red:#FF4455;--gold:#FFD700;}
+body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;display:flex;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,160,255,0.07) 0%,transparent 55%);pointer-events:none;z-index:0;}
+/* SIDEBAR */
+#sidebar{width:220px;min-height:100vh;background:#0a0a14;border-right:1px solid rgba(0,191,255,0.1);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform .3s;}
+.sb-logo{padding:20px 18px;border-bottom:1px solid rgba(0,191,255,0.1);}
+.sb-logo h2{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--blue);letter-spacing:2px;}
+.sb-logo p{font-size:11px;color:var(--muted);margin-top:3px;}
+.sb-nav{flex:1;padding:12px 0;}
+.snav{display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;color:var(--muted);transition:all .2s;font-size:14px;font-weight:600;border-left:3px solid transparent;}
+.snav:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.snav.active{color:var(--blue);background:rgba(0,191,255,0.07);border-left-color:var(--blue);}
+.snav .sni{font-size:18px;width:24px;text-align:center;}
+/* MAIN */
+#main{margin-left:220px;flex:1;min-height:100vh;position:relative;z-index:1;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:rgba(10,10,20,0.9);border-bottom:1px solid rgba(0,191,255,0.1);position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);}
+.tb-title{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--blue);letter-spacing:2px;}
+.db-badge{background:rgba(0,191,255,0.1);border:1px solid rgba(0,191,255,0.25);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;color:var(--blue);}
+/* SECTIONS */
+.sec{display:none;padding:24px;}
+.sec.active{display:block;}
+.sec-title{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--blue);letter-spacing:2px;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid rgba(0,191,255,0.12);}
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px;}
+.sc{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:18px;position:relative;overflow:hidden;}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sc.sc1::before{background:linear-gradient(90deg,var(--blue),transparent);}
+.sc.sc2::before{background:linear-gradient(90deg,var(--gold),transparent);}
+.sc.sc3::before{background:linear-gradient(90deg,var(--green),transparent);}
+.sc.sc4::before{background:linear-gradient(90deg,var(--red),transparent);}
+.sc.sc5::before{background:linear-gradient(90deg,#AA44FF,transparent);}
+.sc-val{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:700;margin-bottom:5px;}
+.sc1 .sc-val{color:var(--blue);}
+.sc2 .sc-val{color:var(--gold);}
+.sc3 .sc-val{color:var(--green);}
+.sc4 .sc-val{color:var(--red);}
+.sc5 .sc-val{color:#AA44FF;}
+.sc-lbl{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:14px;overflow:hidden;margin-bottom:20px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:500px;}
+th{background:#0a0a14;padding:12px 16px;text-align:left;font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.06);white-space:nowrap;}
+td{padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+/* CHECKBOX */
+.cb-col{width:36px;text-align:center;}
+input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--blue);}
+/* BUTTONS */
+.btn{padding:10px 20px;border:none;border-radius:9px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:.5px;transition:all .2s;}
+.btn-blue{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#000;}
+.btn-blue:hover{box-shadow:0 6px 20px rgba(0,191,255,0.35);}
+.btn-red{background:rgba(255,68,85,0.15);color:var(--red);border:1px solid rgba(255,68,85,0.3);}
+.btn-red:hover{background:rgba(255,68,85,0.25);}
+.btn-gold{background:rgba(255,215,0,0.1);color:var(--gold);border:1px solid rgba(255,215,0,0.25);}
+.btn-green{background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.25);}
+.btn-sm{padding:5px 12px;border-radius:6px;font-size:12px;}
+/* ACTIONS BAR */
+.actions-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:14px;background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:12px;}
+.actions-bar .sel-info{flex:1;font-size:13px;color:var(--muted);}
+/* TAG */
+.tag{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.tag-live{background:rgba(255,68,85,0.2);color:var(--red);}
+.tag-active{background:rgba(0,255,136,0.15);color:var(--green);}
+.tag-upcoming{background:rgba(0,191,255,0.15);color:var(--blue);}
+.tag-banned{background:rgba(255,100,0,0.2);color:#FF6600;}
+.tag-ok{background:rgba(0,255,136,0.12);color:var(--green);}
+.tag-pending{background:rgba(255,165,0,0.15);color:var(--gold);}
+.tag-approved{background:rgba(0,255,136,0.12);color:var(--green);}
+.tag-rejected{background:rgba(255,68,85,0.12);color:var(--red);}
+/* SEARCH */
+.search-row{display:flex;gap:10px;margin-bottom:14px;}
+.search-row input{flex:1;background:#0c0c14;border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;}
+.search-row input:focus{border-color:rgba(0,191,255,0.4);}
+/* EXPORT */
+.export-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+.export-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;}
+.export-card:hover{border-color:rgba(0,191,255,0.3);background:rgba(0,191,255,0.04);}
+.export-card .ec-icon{font-size:36px;margin-bottom:10px;display:block;}
+.export-card .ec-title{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--blue);letter-spacing:1px;margin-bottom:6px;}
+.export-card .ec-desc{font-size:12px;color:var(--muted);}
+/* DANGER ZONE */
+.danger-card{background:rgba(255,68,85,0.05);border:1px solid rgba(255,68,85,0.2);border-radius:14px;padding:20px;margin-bottom:16px;}
+.danger-card h3{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--red);letter-spacing:2px;margin-bottom:12px;}
+/* MOBILE */
+.menu-toggle{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99;}
+/* TOAST */
+.toast{position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#1a2a1a,#243024);border:1px solid rgba(0,255,136,0.3);color:var(--green);padding:12px 24px;border-radius:10px;font-weight:600;font-size:14px;z-index:9999;transform:translateX(200px);transition:transform .4s;pointer-events:none;}
+.toast.error{background:linear-gradient(135deg,#2a1a1a,#301f1f);border-color:rgba(255,68,85,0.3);color:var(--red);}
+.toast.show{transform:translateX(0);}
+.empty-msg{text-align:center;padding:32px;color:var(--muted);font-size:14px;}
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:translateX(0);}
+  .sb-overlay.open{display:block;}
+  #main{margin-left:0;}
+  .menu-toggle{display:block;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="sb-overlay" id="sbOverlay" onclick="toggleSb()"></div>
+
+<div id="sidebar">
+  <div class="sb-logo"><h2>🗄️ DATA PANEL</h2><p>FF Arena Database</p></div>
+  <nav class="sb-nav">
+    <div class="snav active" onclick="showSec('secOverview')"><span class="sni">📊</span>Overview</div>
+    <div class="snav" onclick="showSec('secMatchDel')"><span class="sni">🏆</span>Delete Matches</div>
+    <div class="snav" onclick="showSec('secAllUsers')"><span class="sni">👥</span>Users Data</div>
+    <div class="snav" onclick="showSec('secAllMatches')"><span class="sni">🎮</span>All Matches</div>
+    <div class="snav" onclick="showSec('secAllReqs')"><span class="sni">📋</span>Requests</div>
+    <div class="snav" onclick="showSec('secChats')"><span class="sni">💬</span>Chat Logs</div>
+    <div class="snav" onclick="showSec('secExport')"><span class="sni">📤</span>Export Data</div>
+    <div class="snav" onclick="showSec('secDanger')"><span class="sni">⚠️</span>Danger Zone</div>
+  </nav>
+</div>
+
+<div id="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="menu-toggle" onclick="toggleSb()">☰</button>
+      <div class="tb-title" id="secTitleBar">OVERVIEW</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="db-badge">🗄️ LOCAL DB</div>
+      <button class="btn btn-green btn-sm" onclick="refreshAll()">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="sec active" id="secOverview">
+    <div class="sec-title">📊 DATABASE OVERVIEW</div>
+    <div class="stats-row">
+      <div class="sc sc1"><div class="sc-val" id="ov-users">0</div><div class="sc-lbl">Total Users</div></div>
+      <div class="sc sc2"><div class="sc-val" id="ov-matches">0</div><div class="sc-lbl">Matches</div></div>
+      <div class="sc sc3"><div class="sc-val" id="ov-reqs">0</div><div class="sc-lbl">Total Requests</div></div>
+      <div class="sc sc4"><div class="sc-val" id="ov-banned">0</div><div class="sc-lbl">Banned Users</div></div>
+      <div class="sc sc5"><div class="sc-val" id="ov-chats">0</div><div class="sc-lbl">Chat Threads</div></div>
+    </div>
+    <div class="sec-title">DATABASE KEYS</div>
+    <div class="table-wrap"><table><thead><tr><th>Key</th><th>Records</th><th>Size (chars)</th><th>Status</th></tr></thead><tbody id="dbKeysTable"></tbody></table></div>
+  </div>
+
+  <!-- DELETE MATCHES (main feature) -->
+  <div class="sec" id="secMatchDel">
+    <div class="sec-title">🏆 DELETE MATCHES</div>
+    <div class="search-row">
+      <input type="text" id="matchSearch" placeholder="Search matches..." oninput="filterMatches()">
+    </div>
+    <div class="actions-bar">
+      <span class="sel-info" id="matchSelInfo">0 selected</span>
+      <button class="btn btn-gold btn-sm" onclick="selectAllMatches()">☑ Select All</button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.06);color:var(--muted);" onclick="deselectAllMatches()">☐ Deselect</button>
+      <button class="btn btn-red" onclick="deleteSelectedMatches()">🗑 Delete Selected</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="cb-col"><input type="checkbox" id="masterCb" onchange="toggleAllMatches(this)"></th><th>Title</th><th>Mode</th><th>Status</th><th>Date</th><th>Entry</th><th>Prize</th><th>Action</th></tr></thead>
+        <tbody id="matchDelTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ALL USERS -->
+  <div class="sec" id="secAllUsers">
+    <div class="sec-title">👥 USERS DATABASE</div>
+    <div class="search-row">
+      <input type="text" id="userSearchInput" placeholder="Search users..." oninput="filterUsers()">
+    </div>
+    <div class="actions-bar">
+      <span class="sel-info" id="userSelInfo">0 selected</span>
+      <button class="btn btn-red btn-sm" onclick="deleteSelectedUsers()">🗑 Delete Selected</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="cb-col"><input type="checkbox" id="masterUserCb" onchange="toggleAllUsers(this)"></th><th>Username</th><th>Game Name</th><th>UID</th><th>Email</th><th>Mobile</th><th>Coins</th><th>K/W/M</th><th>Status</th></tr></thead>
+        <tbody id="allUsersTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ALL MATCHES -->
+  <div class="sec" id="secAllMatches">
+    <div class="sec-title">🎮 ALL MATCHES DATA</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Title</th><th>Mode</th><th>Status</th><th>Map</th><th>Date/Time</th><th>Entry</th><th>Prize</th><th>Room ID</th></tr></thead>
+        <tbody id="allMatchesTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REQUESTS -->
+  <div class="sec" id="secAllReqs">
+    <div class="sec-title">📋 ALL REQUESTS</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-sm btn-blue" onclick="filterReqs('all')">All</button>
+      <button class="btn btn-sm btn-gold" onclick="filterReqs('deposit')">Deposits</button>
+      <button class="btn btn-sm" style="background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.2);" onclick="filterReqs('withdraw')">Withdrawals</button>
+      <button class="btn btn-sm" style="background:rgba(170,68,255,0.1);color:#AA44FF;border:1px solid rgba(170,68,255,0.2);" onclick="filterReqs('match_join')">Match Joins</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>User</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="allReqsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHATS -->
+  <div class="sec" id="secChats">
+    <div class="sec-title">💬 CHAT LOGS</div>
+    <div id="chatLogsWrap"></div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="sec" id="secExport">
+    <div class="sec-title">📤 EXPORT DATA</div>
+    <div class="export-grid">
+      <div class="export-card" onclick="exportData('users')"><span class="ec-icon">👥</span><div class="ec-title">USERS</div><div class="ec-desc">Export all user accounts</div></div>
+      <div class="export-card" onclick="exportData('matches')"><span class="ec-icon">🏆</span><div class="ec-title">MATCHES</div><div class="ec-desc">Export all tournament data</div></div>
+      <div class="export-card" onclick="exportData('requests')"><span class="ec-icon">📋</span><div class="ec-title">REQUESTS</div><div class="ec-desc">Deposits & withdrawals</div></div>
+      <div class="export-card" onclick="exportData('chats')"><span class="ec-icon">💬</span><div class="ec-title">CHATS</div><div class="ec-desc">All support conversations</div></div>
+      <div class="export-card" onclick="exportAll()"><span class="ec-icon">🗄️</span><div class="ec-title">FULL BACKUP</div><div class="ec-desc">Export everything as JSON</div></div>
+      <div class="export-card" onclick="importData()"><span class="ec-icon">📥</span><div class="ec-title">IMPORT</div><div class="ec-desc">Restore from backup file</div></div>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="processImport(event)">
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="sec" id="secDanger">
+    <div class="sec-title">⚠️ DANGER ZONE</div>
+    <div class="danger-card">
+      <h3>DELETE ALL MATCHES</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">This will permanently delete all matches from the database.</p>
+      <button class="btn btn-red" onclick="clearData('matches')">🗑 Delete All Matches</button>
+    </div>
+    <div class="danger-card">
+      <h3>DELETE ALL REQUESTS</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Delete all deposit, withdrawal and match join records.</p>
+      <button class="btn btn-red" onclick="clearData('requests')">🗑 Delete All Requests</button>
+    </div>
+    <div class="danger-card">
+      <h3>DELETE ALL USERS</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">⚠️ This will delete ALL user accounts permanently. Cannot be undone.</p>
+      <button class="btn btn-red" onclick="clearData('users')">💣 Delete All Users</button>
+    </div>
+    <div class="danger-card">
+      <h3>CLEAR ENTIRE DATABASE</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">☢️ Wipes ALL data. Use with extreme caution.</p>
+      <button class="btn btn-red" onclick="clearAll()">☢️ WIPE ALL DATA</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB={
+  get:k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),
+  getUsers:()=>DB.get('ffa_users')||{},
+  saveUsers:u=>DB.set('ffa_users',u),
+  getMatches:()=>DB.get('ffa_matches')||[],
+  saveMatches:m=>DB.set('ffa_matches',m),
+  getRequests:()=>DB.get('ffa_requests')||[],
+  saveRequests:r=>DB.set('ffa_requests',r),
+  getChats:()=>DB.get('ffa_chats')||{},
+};
+
+const KEYS=['ffa_users','ffa_matches','ffa_requests','ffa_chats','ffa_settings','ffa_admins'];
+
+let allMatchesCached=[], allUsersCached=[], selMatches=new Set(), selUsers=new Set(), reqFilter='all';
+
+window.onload=()=>loadOverview();
+
+function showSec(id){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.snav').forEach(n=>n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const titles={secOverview:'OVERVIEW',secMatchDel:'DELETE MATCHES',secAllUsers:'USERS DATA',secAllMatches:'ALL MATCHES',secAllReqs:'REQUESTS',secChats:'CHAT LOGS',secExport:'EXPORT DATA',secDanger:'DANGER ZONE'};
+  document.getElementById('secTitleBar').textContent=titles[id]||id;
+  if(id==='secOverview')loadOverview();
+  if(id==='secMatchDel')loadMatchDelete();
+  if(id==='secAllUsers')loadAllUsers();
+  if(id==='secAllMatches')loadAllMatches();
+  if(id==='secAllReqs')loadAllReqs();
+  if(id==='secChats')loadChatLogs();
+  if(window.innerWidth<=768)toggleSb();
+}
+
+function toggleSb(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sbOverlay').classList.toggle('open');
+}
+
+function refreshAll(){
+  const active=document.querySelector('.sec.active');
+  if(active)active.id&&showSec&&eval('loadOverview()');
+  showToast('Refreshed ✓');loadOverview();
+}
+
+function loadOverview(){
+  const users=DB.getUsers();
+  const matches=DB.getMatches();
+  const reqs=DB.getRequests();
+  const chats=DB.getChats();
+  document.getElementById('ov-users').textContent=Object.keys(users).length;
+  document.getElementById('ov-matches').textContent=matches.length;
+  document.getElementById('ov-reqs').textContent=reqs.length;
+  document.getElementById('ov-banned').textContent=Object.values(users).filter(u=>u.banned).length;
+  document.getElementById('ov-chats').textContent=Object.keys(chats).length;
+  const tbody=document.getElementById('dbKeysTable');
+  tbody.innerHTML=KEYS.map(k=>{
+    const raw=localStorage.getItem(k)||'';
+    const val=DB.get(k);
+    const count=Array.isArray(val)?val.length:val&&typeof val==='object'?Object.keys(val).length:0;
+    return `<tr><td><code style="color:var(--blue);font-size:12px;">${k}</code></td><td>${count} records</td><td>${raw.length.toLocaleString()}</td><td><span class="tag tag-ok">✓ Active</span></td></tr>`;
+  }).join('');
+}
+
+// MATCH DELETE
+function loadMatchDelete(){
+  allMatchesCached=DB.getMatches();
+  selMatches.clear();
+  renderMatchDelete(allMatchesCached);
+}
+
+function filterMatches(){
+  const q=document.getElementById('matchSearch').value.toLowerCase();
+  renderMatchDelete(allMatchesCached.filter(m=>m.title.toLowerCase().includes(q)||m.mode.toLowerCase().includes(q)||m.status.toLowerCase().includes(q)));
+}
+
+function renderMatchDelete(matches){
+  const tbody=document.getElementById('matchDelTable');
+  if(!matches.length){tbody.innerHTML='<tr><td colspan="8" class="empty-msg">No matches</td></tr>';updateMatchSelInfo();return;}
+  tbody.innerHTML=matches.map(m=>{
+    const sc=m.status==='Live'?'tag-live':m.status==='Active'?'tag-active':'tag-upcoming';
+    return `<tr>
+      <td class="cb-col"><input type="checkbox" class="match-cb" value="${m.id}" ${selMatches.has(m.id)?'checked':''} onchange="toggleMatchSel('${m.id}',this.checked)"></td>
+      <td><b>${m.title}</b></td><td>${m.mode}</td>
+      <td><span class="tag ${sc}">${m.status}</span></td>
+      <td>${m.date||'TBA'}</td><td>🪙 ${m.entry}</td><td>🏆 ${m.prize}</td>
+      <td><button class="btn btn-red btn-sm" onclick="deleteSingleMatch('${m.id}')">🗑 Delete</button></td>
+    </tr>`;
+  }).join('');
+  updateMatchSelInfo();
+}
+
+function toggleMatchSel(id,checked){if(checked)selMatches.add(id);else selMatches.delete(id);updateMatchSelInfo();}
+function updateMatchSelInfo(){document.getElementById('matchSelInfo').textContent=selMatches.size+' selected';}
+function selectAllMatches(){allMatchesCached.forEach(m=>selMatches.add(m.id));renderMatchDelete(allMatchesCached);filterMatches();}
+function deselectAllMatches(){selMatches.clear();document.getElementById('masterCb').checked=false;filterMatches();}
+function toggleAllMatches(cb){if(cb.checked)selectAllMatches();else deselectAllMatches();}
+
+function deleteSelectedMatches(){
+  if(!selMatches.size){showToast('Select at least one match','error');return;}
+  if(!confirm(`Delete ${selMatches.size} selected match(es)?`))return;
+  const matches=DB.getMatches().filter(m=>!selMatches.has(m.id));
+  DB.saveMatches(matches);selMatches.clear();
+  allMatchesCached=matches;
+  showToast(`${selMatches.size||'Selected'} match(es) deleted ✓`);
+  loadMatchDelete();loadOverview();
+}
+
+function deleteSingleMatch(id){
+  if(!confirm('Delete this match?'))return;
+  const matches=DB.getMatches().filter(m=>m.id!==id);
+  DB.saveMatches(matches);allMatchesCached=matches;selMatches.delete(id);
+  showToast('Match deleted ✓');filterMatches();loadOverview();
+}
+
+// USERS
+function loadAllUsers(){
+  allUsersCached=Object.values(DB.getUsers());
+  selUsers.clear();renderUsers(allUsersCached);
+}
+
+function filterUsers(){
+  const q=document.getElementById('userSearchInput').value.toLowerCase();
+  renderUsers(allUsersCached.filter(u=>u.username.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)||u.uid.includes(q)));
+}
+
+function renderUsers(users){
+  const tbody=document.getElementById('allUsersTable');
+  tbody.innerHTML=users.length?users.map(u=>`<tr>
+    <td class="cb-col"><input type="checkbox" class="user-cb" value="${u.email}" ${selUsers.has(u.email)?'checked':''} onchange="toggleUserSel('${u.email}',this.checked)"></td>
+    <td><b>${u.username}</b></td><td>${u.gameName||'-'}</td><td>${u.uid}</td>
+    <td>${u.email}</td><td>${u.mobile}</td><td>🪙 ${u.coins||0}</td>
+    <td>${u.kills||0}/${u.wins||0}/${u.matches||0}</td>
+    <td><span class="tag ${u.banned?'tag-banned':'tag-ok'}">${u.banned?'BANNED':'ACTIVE'}</span></td>
+  </tr>`).join(''):'<tr><td colspan="9" class="empty-msg">No users</td></tr>';
+  document.getElementById('userSelInfo').textContent=selUsers.size+' selected';
+}
+
+function toggleUserSel(email,checked){if(checked)selUsers.add(email);else selUsers.delete(email);document.getElementById('userSelInfo').textContent=selUsers.size+' selected';}
+function toggleAllUsers(cb){if(cb.checked)allUsersCached.forEach(u=>selUsers.add(u.email));else selUsers.clear();renderUsers(allUsersCached);}
+
+function deleteSelectedUsers(){
+  if(!selUsers.size){showToast('Select users first','error');return;}
+  if(!confirm(`Permanently delete ${selUsers.size} user(s)?`))return;
+  const users=DB.getUsers();
+  selUsers.forEach(email=>delete users[email]);
+  DB.saveUsers(users);selUsers.clear();
+  allUsersCached=Object.values(DB.getUsers());
+  showToast('Users deleted ✓');renderUsers(allUsersCached);loadOverview();
+}
+
+// ALL MATCHES VIEW
+function loadAllMatches(){
+  const matches=DB.getMatches();
+  const tbody=document.getElementById('allMatchesTable');
+  tbody.innerHTML=matches.length?matches.map(m=>{
+    const sc=m.status==='Live'?'tag-live':m.status==='Active'?'tag-active':'tag-upcoming';
+    return `<tr>
+      <td style="font-size:11px;color:var(--muted);">${m.id}</td>
+      <td><b>${m.title}</b></td><td>${m.mode}</td>
+      <td><span class="tag ${sc}">${m.status}</span></td>
+      <td>${m.map||'-'}</td><td>${m.date||'TBA'} ${m.time||''}</td>
+      <td>🪙 ${m.entry}</td><td>🏆 ${m.prize}</td>
+      <td>${m.resultId||'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="9" class="empty-msg">No matches</td></tr>';
+}
+
+// REQUESTS
+function filterReqs(type){reqFilter=type;loadAllReqs();}
+function loadAllReqs(){
+  let reqs=DB.getRequests();
+  if(reqFilter!=='all')reqs=reqs.filter(r=>r.type===reqFilter);
+  const tbody=document.getElementById('allReqsTable');
+  tbody.innerHTML=reqs.length?[...reqs].reverse().map(r=>{
+    const tc=r.status==='approved'?'tag-approved':r.status==='rejected'?'tag-rejected':r.status==='confirmed'?'tag-approved':'tag-pending';
+    const typeLabel=r.type==='deposit'?'⬆ Deposit':r.type==='withdraw'?'⬇ Withdraw':'🎮 Match Join';
+    return `<tr>
+      <td>${typeLabel}</td><td>${r.username||r.user}</td>
+      <td>🪙 ${r.amount}</td><td>${r.method||r.matchTitle||'-'}</td>
+      <td style="font-size:12px;">${r.date}</td>
+      <td><span class="tag ${tc}">${r.status.toUpperCase()}</span></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="6" class="empty-msg">No requests</td></tr>';
+}
+
+// CHATS
+function loadChatLogs(){
+  const chats=DB.getChats();
+  const el=document.getElementById('chatLogsWrap');
+  const users=Object.keys(chats);
+  if(!users.length){el.innerHTML='<div class="empty-msg">No chat data</div>';return;}
+  el.innerHTML=users.map(email=>{
+    const msgs=chats[email]||[];
+    return `<div style="background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:12px;overflow:hidden;">
+      <div style="padding:12px 16px;background:#0a0a14;border-bottom:1px solid rgba(255,255,255,0.05);font-weight:700;font-size:13px;color:var(--blue);">💬 ${email} (${msgs.length} messages)</div>
+      <div style="padding:12px 16px;max-height:200px;overflow-y:auto;">
+        ${msgs.map(m=>`<div style="margin-bottom:8px;font-size:13px;"><span style="color:${m.from==='admin'?'var(--red)':'var(--gold)'};">[${m.from.toUpperCase()}]</span> ${m.text} <span style="color:var(--muted);font-size:11px;">${m.time}</span></div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// EXPORT
+function exportData(type){
+  let data,name;
+  if(type==='users'){data=DB.getUsers();name='users';}
+  else if(type==='matches'){data=DB.getMatches();name='matches';}
+  else if(type==='requests'){data=DB.getRequests();name='requests';}
+  else if(type==='chats'){data=DB.getChats();name='chats';}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`ffarena_${name}_${Date.now()}.json`;a.click();
+  showToast(`${name} data exported ✓`);
+}
+
+function exportAll(){
+  const all={};KEYS.forEach(k=>all[k]=DB.get(k));
+  const blob=new Blob([JSON.stringify(all,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`ffarena_full_backup_${Date.now()}.json`;a.click();
+  showToast('Full backup exported ✓');
+}
+
+function importData(){document.getElementById('importFile').click();}
+
+function processImport(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!confirm('This will overwrite existing data. Continue?'))return;
+      Object.keys(data).forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));
+      showToast('Data imported successfully ✓');loadOverview();
+    }catch{showToast('Invalid backup file','error');}
+  };reader.readAsText(file);
+}
+
+// DANGER
+function clearData(type){
+  const keyMap={users:'ffa_users',matches:'ffa_matches',requests:'ffa_requests'};
+  if(!confirm(`Delete all ${type} data? This cannot be undone.`))return;
+  localStorage.setItem(keyMap[type],type==='users'?'{}':'[]');
+  showToast(`All ${type} deleted`);loadOverview();
+}
+
+function clearAll(){
+  if(!confirm('⚠️ This will WIPE ALL DATA permanently. Are you absolutely sure?'))return;
+  if(!confirm('FINAL WARNING: All users, matches, requests and chats will be deleted!'))return;
+  KEYS.forEach(k=>localStorage.removeItem(k));
+  showToast('All data wiped');loadOverview();
+}
+
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(type==='error'?' error':'');
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>

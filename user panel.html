@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FF Arena - User Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--gold:#FFD700;--gold2:#FFA500;--dark:#08080f;--card:#111118;--card2:#1a1a25;--text:#e8e8e8;--muted:#777;--green:#00FF88;--red:#FF4455;--blue:#00BFFF;}
+body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 0%,rgba(255,140,0,0.08) 0%,transparent 50%),radial-gradient(ellipse at 70% 100%,rgba(255,215,0,0.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.screen{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
+.screen.active{display:flex;}
+/* AUTH */
+#authScreen{justify-content:center;align-items:center;padding:24px 20px;}
+.auth-box{width:100%;background:linear-gradient(160deg,#13131e,#1c1c28);border:1px solid rgba(255,215,0,0.18);border-radius:20px;padding:32px 24px;box-shadow:0 24px 80px rgba(0,0,0,0.9);}
+.logo-wrap{text-align:center;margin-bottom:28px;}
+.logo-wrap .flame{font-size:52px;display:block;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 10px rgba(255,165,0,0.6));}50%{filter:drop-shadow(0 0 25px rgba(255,165,0,1));}}
+.logo-wrap h1{font-family:'Orbitron',sans-serif;font-size:20px;color:var(--gold);letter-spacing:4px;margin-top:6px;}
+.logo-wrap p{color:var(--muted);font-size:12px;letter-spacing:2px;margin-top:4px;}
+.tabs{display:flex;background:#0c0c14;border-radius:10px;padding:4px;margin-bottom:22px;gap:4px;}
+.tab{flex:1;padding:10px;text-align:center;border-radius:7px;cursor:pointer;font-weight:700;font-size:15px;letter-spacing:1px;transition:all .3s;color:var(--muted);}
+.tab.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;}
+.form-wrap{max-height:55vh;overflow-y:auto;padding-right:2px;}
+.form-wrap::-webkit-scrollbar{width:3px;}
+.form-wrap::-webkit-scrollbar-thumb{background:rgba(255,215,0,0.3);border-radius:2px;}
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:11px;letter-spacing:1.5px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;}
+.fg input{width:100%;background:#0c0c14;border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;outline:none;transition:border .3s;-webkit-appearance:none;}
+.fg input:focus{border-color:rgba(255,215,0,0.45);}
+.btn-gold{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;border:none;border-radius:10px;cursor:pointer;transition:all .3s;margin-top:8px;}
+.btn-gold:hover{box-shadow:0 8px 28px rgba(255,165,0,0.45);transform:translateY(-1px);}
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:linear-gradient(90deg,#0f0f18,#1a1a28);border-bottom:1px solid rgba(255,215,0,0.12);position:sticky;top:0;z-index:100;}
+.topbar-title{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--gold);letter-spacing:2px;}
+.coins-badge{display:flex;align-items:center;gap:6px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.25);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--gold);}
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:linear-gradient(0deg,#0c0c14,#111118);border-top:1px solid rgba(255,215,0,0.1);display:flex;z-index:200;}
+.nav-item{flex:1;padding:11px 4px;text-align:center;cursor:pointer;transition:all .2s;color:var(--muted);}
+.nav-item .nav-icon{font-size:20px;display:block;margin-bottom:3px;}
+.nav-item .nav-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+.nav-item.active{color:var(--gold);}
+/* PAGES */
+.page{display:none;flex:1;padding:16px 16px 85px;}
+.page.active{display:block;}
+.sec-head{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:2px;color:var(--gold);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(255,215,0,0.1);}
+/* HOME STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.stat-box{background:var(--card);border:1px solid rgba(255,215,0,0.1);border-radius:12px;padding:14px 10px;text-align:center;}
+.stat-box .s-val{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;color:var(--gold);}
+.stat-box .s-lbl{font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:4px;}
+/* MATCH CARD */
+.match-card{background:linear-gradient(135deg,#13131e,#1e1e2e);border:1px solid rgba(255,215,0,0.15);border-radius:14px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}
+.match-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2),transparent);}
+.match-title{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--gold);margin-bottom:10px;}
+.match-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px;}
+.badge-live{background:rgba(255,68,85,0.2);color:var(--red);border:1px solid rgba(255,68,85,0.3);}
+.badge-upcoming{background:rgba(0,191,255,0.15);color:var(--blue);border:1px solid rgba(0,191,255,0.25);}
+.badge-active{background:rgba(0,255,136,0.15);color:var(--green);border:1px solid rgba(0,255,136,0.25);}
+.match-meta{font-size:12px;color:var(--muted);margin-bottom:4px;}
+.match-fee{font-size:13px;color:var(--gold);font-weight:600;margin-bottom:10px;}
+.btn-join{padding:9px 22px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
+.match-result{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:13px;color:var(--green);}
+.match-result b{color:var(--gold);}
+/* WALLET */
+.wallet-balance{text-align:center;padding:24px;background:linear-gradient(135deg,#1a1a28,#222235);border:1px solid rgba(255,215,0,0.2);border-radius:16px;margin-bottom:18px;}
+.bal-label{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.bal-amount{font-family:'Orbitron',sans-serif;font-size:36px;color:var(--gold);margin:8px 0;}
+.wallet-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.btn-outline{padding:12px;background:transparent;border:1px solid rgba(255,215,0,0.3);color:var(--gold);border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.btn-outline:hover{background:rgba(255,215,0,0.08);}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;justify-content:center;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:linear-gradient(160deg,#13131e,#1e1e2e);border:1px solid rgba(255,215,0,0.2);border-radius:20px 20px 0 0;padding:28px 22px 40px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--gold);margin-bottom:20px;letter-spacing:2px;}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.pay-method-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.pay-btn{padding:14px;border-radius:10px;border:2px solid rgba(255,255,255,0.08);background:var(--card);cursor:pointer;text-align:center;color:var(--text);font-weight:600;font-size:14px;transition:all .2s;}
+.pay-btn.selected{border-color:var(--gold);color:var(--gold);background:rgba(255,215,0,0.08);}
+.admin-pay-info{background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.15);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.8;}
+.admin-pay-info b{color:var(--gold);}
+/* LEADERBOARD */
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid rgba(255,255,255,0.05);border-radius:12px;margin-bottom:8px;}
+.lb-rank{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;width:28px;text-align:center;}
+.lb-rank.gold{color:var(--gold);}
+.lb-rank.silver{color:#C0C0C0;}
+.lb-rank.bronze{color:#CD7F32;}
+.lb-info{flex:1;}
+.lb-name{font-weight:700;font-size:15px;}
+.lb-sub{font-size:11px;color:var(--muted);}
+.lb-kills{font-family:'Orbitron',sans-serif;font-size:16px;color:var(--red);font-weight:700;}
+/* PROFILE */
+.profile-header{text-align:center;padding:24px 16px;background:linear-gradient(160deg,#13131e,#1e1e2e);border:1px solid rgba(255,215,0,0.15);border-radius:16px;margin-bottom:16px;}
+.avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px;box-shadow:0 0 20px rgba(255,165,0,0.4);}
+.profile-name{font-family:'Orbitron',sans-serif;font-size:16px;color:var(--gold);}
+.profile-uid{font-size:12px;color:var(--muted);margin-top:4px;}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;}
+.ps-box{background:rgba(0,0,0,0.3);border-radius:10px;padding:10px 6px;text-align:center;}
+.ps-val{font-family:'Orbitron',sans-serif;font-size:18px;color:var(--gold);font-weight:700;}
+.ps-lbl{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:3px;}
+.profile-actions{display:flex;flex-direction:column;gap:10px;}
+.profile-btn{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:12px;cursor:pointer;color:var(--text);text-decoration:none;}
+.profile-btn:hover{border-color:rgba(255,215,0,0.25);}
+.profile-btn .pb-icon{font-size:20px;width:32px;text-align:center;}
+.profile-btn .pb-text{font-size:15px;font-weight:600;flex:1;}
+/* REFERRAL */
+.ref-card{background:linear-gradient(135deg,#1a1a28,#22223a);border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:24px;text-align:center;margin-bottom:16px;}
+.ref-code{font-family:'Orbitron',sans-serif;font-size:24px;color:var(--gold);letter-spacing:4px;margin:12px 0;}
+.btn-copy{padding:10px 24px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);color:var(--gold);border-radius:8px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;}
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 130px);}
+.chat-messages{flex:1;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:75%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5;}
+.msg-user{background:linear-gradient(135deg,rgba(255,165,0,0.25),rgba(255,215,0,0.15));border:1px solid rgba(255,215,0,0.2);align-self:flex-end;border-bottom-right-radius:4px;}
+.msg-admin{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);align-self:flex-start;border-bottom-left-radius:4px;}
+.msg-time{font-size:10px;color:var(--muted);margin-top:4px;}
+.chat-input-row{display:flex;gap:8px;padding:12px 16px;background:#0f0f18;border-top:1px solid rgba(255,215,0,0.1);}
+.chat-input-row input{flex:1;background:#1a1a28;border:1px solid rgba(255,215,0,0.15);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;outline:none;}
+.chat-send{padding:11px 18px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:10px;color:#000;font-weight:700;cursor:pointer;font-size:16px;}
+/* TX HISTORY */
+.hist-item{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.hist-info{flex:1;}
+.hist-label{font-weight:600;font-size:14px;}
+.hist-date{font-size:11px;color:var(--muted);margin-top:2px;}
+.hist-amount{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;}
+.hist-amount.pos{color:var(--green);}
+.hist-amount.neg{color:var(--red);}
+.status-tag{font-size:10px;padding:3px 8px;border-radius:10px;letter-spacing:1px;font-weight:600;margin-top:4px;display:inline-block;}
+.status-pending{background:rgba(255,165,0,0.15);color:var(--gold2);border:1px solid rgba(255,165,0,0.25);}
+.status-approved{background:rgba(0,255,136,0.12);color:var(--green);border:1px solid rgba(0,255,136,0.2);}
+.status-rejected{background:rgba(255,68,85,0.12);color:var(--red);border:1px solid rgba(255,68,85,0.2);}
+/* BAN */
+#banScreen{display:none;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;padding:24px;position:relative;z-index:10;}
+.ban-box{background:linear-gradient(160deg,#1a0505,#2a0808);border:1px solid rgba(255,68,85,0.3);border-radius:20px;padding:40px 28px;text-align:center;max-width:380px;width:100%;}
+.ban-icon{font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 20px rgba(255,68,85,0.6));}
+.ban-title{font-family:'Orbitron',sans-serif;font-size:20px;color:var(--red);letter-spacing:3px;margin-bottom:10px;}
+.ban-msg{color:var(--muted);font-size:14px;line-height:1.6;}
+/* TOAST */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:linear-gradient(135deg,#1a2a1a,#243024);border:1px solid rgba(0,255,136,0.3);color:var(--green);padding:12px 24px;border-radius:10px;font-weight:600;font-size:14px;z-index:9999;transition:transform .4s ease;white-space:nowrap;pointer-events:none;}
+.toast.error{background:linear-gradient(135deg,#2a1a1a,#301f1f);border-color:rgba(255,68,85,0.3);color:var(--red);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-state .es-icon{font-size:48px;margin-bottom:12px;display:block;opacity:0.4;}
+</style>
+</head>
+<body>
+
+<!-- BAN SCREEN -->
+<div id="banScreen">
+  <div class="ban-box">
+    <div class="ban-icon">🚫</div>
+    <div class="ban-title">ACCOUNT BANNED</div>
+    <p class="ban-msg">Your account has been banned by the admin.<br>Contact support for more information.</p>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div class="screen active" id="authScreen">
+  <div class="auth-box">
+    <div class="logo-wrap">
+      <span class="flame">🔥</span>
+      <h1>FF ARENA</h1>
+      <p>FREE FIRE TOURNAMENT</p>
+    </div>
+    <div class="tabs">
+      <div class="tab active" id="tabLogin" onclick="switchTab('login')">LOGIN</div>
+      <div class="tab" id="tabSignup" onclick="switchTab('signup')">SIGN UP</div>
+    </div>
+    <div id="loginForm">
+      <div class="fg"><label>Email / Username</label><input type="text" id="loginEmail" autocomplete="username" placeholder="Enter email or username"></div>
+      <div class="fg"><label>Password</label><input type="password" id="loginPass" autocomplete="current-password" placeholder="Enter password"></div>
+      <button class="btn-gold" onclick="doLogin()">LOGIN</button>
+    </div>
+    <div id="signupForm" style="display:none;">
+      <div class="form-wrap">
+        <div class="fg"><label>Username</label><input type="text" id="suUsername" placeholder="Choose a username"></div>
+        <div class="fg"><label>Game Name</label><input type="text" id="suGameName" placeholder="Your FF game name"></div>
+        <div class="fg"><label>Game UID</label><input type="text" id="suUID" placeholder="Your Free Fire UID"></div>
+        <div class="fg"><label>Mobile Number</label><input type="tel" id="suMobile" placeholder="03xx-xxxxxxx"></div>
+        <div class="fg"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com"></div>
+        <div class="fg"><label>Password</label><input type="password" id="suPass" autocomplete="new-password" placeholder="Create password"></div>
+        <div class="fg"><label>Confirm Password</label><input type="password" id="suConfirm" autocomplete="new-password" placeholder="Repeat password"></div>
+        <div class="fg"><label>Referral Code (Optional)</label><input type="text" id="suRef" placeholder="Friend's referral code"></div>
+      </div>
+      <button class="btn-gold" onclick="doSignup()">CREATE ACCOUNT</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="screen" id="appScreen">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">🔥 FF ARENA</div>
+    <div class="coins-badge">🪙 <span id="coinDisplay">0</span></div>
+  </div>
+
+  <!-- HOME -->
+  <div class="page active" id="pageHome">
+    <div class="stats-row" style="margin-top:12px;">
+      <div class="stat-box"><div class="s-val" id="homeKills">0</div><div class="s-lbl">KILLS</div></div>
+      <div class="stat-box"><div class="s-val" id="homeWins">0</div><div class="s-lbl">WINS</div></div>
+      <div class="stat-box"><div class="s-val" id="homeMatches">0</div><div class="s-lbl">MATCHES</div></div>
+    </div>
+    <div class="sec-head">🏆 TOURNAMENTS</div>
+    <div id="matchListHome"></div>
+  </div>
+
+  <!-- WALLET -->
+  <div class="page" id="pageWallet">
+    <div class="wallet-balance" style="margin-top:12px;">
+      <div class="bal-label">Available Balance</div>
+      <div class="bal-amount">🪙 <span id="walletBal">0</span></div>
+    </div>
+    <div class="wallet-btns">
+      <button class="btn-outline" onclick="openModal('depositModal')">⬆ DEPOSIT</button>
+      <button class="btn-outline" onclick="openModal('withdrawModal')">⬇ WITHDRAW</button>
+    </div>
+    <div class="sec-head">📋 TRANSACTION HISTORY</div>
+    <div id="txHistory"></div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="page" id="pageLeaderboard">
+    <div class="sec-head" style="margin-top:12px;">🏅 TOP PLAYERS</div>
+    <div id="leaderboardList"></div>
+  </div>
+
+  <!-- REFERRAL -->
+  <div class="page" id="pageReferral">
+    <div style="margin-top:12px;">
+      <div class="ref-card">
+        <div style="font-size:13px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">Your Invitation Code</div>
+        <div class="ref-code" id="refCode">------</div>
+        <button class="btn-copy" onclick="copyRefCode()">📋 COPY CODE</button>
+      </div>
+      <div class="ref-card">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Share App Link</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold);word-break:break-all;">https://ffarena.app/join</div>
+        <button class="btn-copy" style="margin-top:12px;" onclick="copyAppLink()">🔗 COPY LINK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="page" id="pageProfile">
+    <div class="profile-header" style="margin-top:12px;">
+      <div class="avatar">👤</div>
+      <div class="profile-name" id="profName">USERNAME</div>
+      <div class="profile-uid" id="profUID">UID: --------</div>
+      <div class="profile-stats">
+        <div class="ps-box"><div class="ps-val" id="profKills">0</div><div class="ps-lbl">KILLS</div></div>
+        <div class="ps-box"><div class="ps-val" id="profWins">0</div><div class="ps-lbl">WINS</div></div>
+        <div class="ps-box"><div class="ps-val" id="profMatches">0</div><div class="ps-lbl">MATCHES</div></div>
+      </div>
+    </div>
+    <div class="profile-actions">
+      <a class="profile-btn" id="ytBtn" href="#" target="_blank"><span class="pb-icon">▶️</span><span class="pb-text">YouTube Channel</span><span>›</span></a>
+      <div class="profile-btn" onclick="openPage('pageChat')"><span class="pb-icon">💬</span><span class="pb-text">Chat with Admin</span><span>›</span></div>
+      <div class="profile-btn" onclick="openModal('editProfileModal')"><span class="pb-icon">✏️</span><span class="pb-text">Edit Profile</span><span>›</span></div>
+      <div class="profile-btn" onclick="openPage('pageReferral')"><span class="pb-icon">🎁</span><span class="pb-text">Refer &amp; Earn</span><span>›</span></div>
+      <div class="profile-btn" onclick="doLogout()" style="border-color:rgba(255,68,85,0.2);"><span class="pb-icon">🚪</span><span class="pb-text" style="color:var(--red);">Logout</span></div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="page" id="pageChat" style="padding:12px 0 0 0;">
+    <div style="padding:0 16px 10px;"><div class="sec-head" style="margin-bottom:0;">💬 SUPPORT CHAT</div></div>
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Type a message...">
+        <button class="chat-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav0" onclick="openPage('pageHome',0)"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></div>
+    <div class="nav-item" id="nav1" onclick="openPage('pageWallet',1)"><span class="nav-icon">💰</span><span class="nav-label">Wallet</span></div>
+    <div class="nav-item" id="nav2" onclick="openPage('pageLeaderboard',2)"><span class="nav-icon">🏅</span><span class="nav-label">Ranks</span></div>
+    <div class="nav-item" id="nav3" onclick="openPage('pageReferral',3)"><span class="nav-icon">🎁</span><span class="nav-label">Refer</span></div>
+    <div class="nav-item" id="nav4" onclick="openPage('pageProfile',4)"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></div>
+  </div>
+</div>
+
+<!-- DEPOSIT MODAL -->
+<div class="modal-overlay" id="depositModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('depositModal')">✕</button>
+    <div class="modal-title">⬆ DEPOSIT COINS</div>
+    <div id="adminPayNums" class="admin-pay-info">Loading...</div>
+    <div class="pay-method-btns">
+      <div class="pay-btn selected" id="depEP" onclick="selectDepMethod('easypaisa')">📱 Easypaisa</div>
+      <div class="pay-btn" id="depJC" onclick="selectDepMethod('jazzcash')">📱 JazzCash</div>
+    </div>
+    <div class="fg"><label>Transaction ID</label><input type="text" id="depTxID" placeholder="Enter transaction ID"></div>
+    <div class="fg"><label>Sender Number</label><input type="tel" id="depSender" placeholder="Number used to pay"></div>
+    <div class="fg"><label>Amount (PKR)</label><input type="number" id="depAmount" placeholder="Enter amount"></div>
+    <button class="btn-gold" onclick="submitDeposit()">SUBMIT REQUEST</button>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-overlay" id="withdrawModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('withdrawModal')">✕</button>
+    <div class="modal-title">⬇ WITHDRAW COINS</div>
+    <div class="pay-method-btns">
+      <div class="pay-btn selected" id="wdEP" onclick="selectWdMethod('easypaisa')">📱 Easypaisa</div>
+      <div class="pay-btn" id="wdJC" onclick="selectWdMethod('jazzcash')">📱 JazzCash</div>
+    </div>
+    <div class="fg"><label>Amount (Coins)</label><input type="number" id="wdAmount" placeholder="Coins to withdraw"></div>
+    <div class="fg"><label>Wallet Number</label><input type="tel" id="wdNumber" placeholder="Your account number"></div>
+    <div class="fg"><label>Account Holder Name</label><input type="text" id="wdName" placeholder="Your name"></div>
+    <button class="btn-gold" onclick="submitWithdraw()">SUBMIT REQUEST</button>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editProfileModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('editProfileModal')">✕</button>
+    <div class="modal-title">✏️ EDIT PROFILE</div>
+    <div class="fg"><label>Username</label><input type="text" id="epUsername" placeholder="Username"></div>
+    <div class="fg"><label>Game Name</label><input type="text" id="epGameName" placeholder="Game name"></div>
+    <div class="fg"><label>Mobile</label><input type="tel" id="epMobile" placeholder="Mobile number"></div>
+    <button class="btn-gold" onclick="saveProfile()">SAVE CHANGES</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB={
+  get:k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),
+  getUsers:()=>DB.get('ffa_users')||{},
+  saveUsers:u=>DB.set('ffa_users',u),
+  getMatches:()=>DB.get('ffa_matches')||[],
+  getSettings:()=>DB.get('ffa_settings')||{ep:'',jc:'',youtube:''},
+  getRequests:()=>DB.get('ffa_requests')||[],
+  saveRequests:r=>DB.set('ffa_requests',r),
+  getChats:()=>DB.get('ffa_chats')||{},
+  saveChats:c=>DB.set('ffa_chats',c),
+};
+
+let currentUser=null;
+let depSelectedMethod='easypaisa',wdSelectedMethod='easypaisa';
+
+window.onload=()=>{
+  const saved=DB.get('ffa_session');
+  if(saved){const users=DB.getUsers();if(users[saved]){currentUser=users[saved];if(currentUser.banned){showBan();return;}showApp();}}
+};
+
+function showBan(){
+  document.getElementById('authScreen').classList.remove('active');
+  document.getElementById('banScreen').style.display='flex';
+}
+
+function switchTab(t){
+  document.getElementById('tabLogin').classList.toggle('active',t==='login');
+  document.getElementById('tabSignup').classList.toggle('active',t==='signup');
+  document.getElementById('loginForm').style.display=t==='login'?'block':'none';
+  document.getElementById('signupForm').style.display=t==='signup'?'block':'none';
+}
+
+function doLogin(){
+  const id=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value.trim();
+  if(!id||!pass){showToast('Fill all fields','error');return;}
+  const users=DB.getUsers();
+  const user=Object.values(users).find(u=>u.email===id||u.username===id);
+  if(!user||user.password!==pass){showToast('Wrong email or password','error');return;}
+  if(user.banned){showToast('Account banned!','error');return;}
+  currentUser=user;DB.set('ffa_session',user.email);
+  showToast('Login Successful ✓');setTimeout(showApp,700);
+}
+
+function doSignup(){
+  const vals={
+    username:document.getElementById('suUsername').value.trim(),
+    gameName:document.getElementById('suGameName').value.trim(),
+    uid:document.getElementById('suUID').value.trim(),
+    mobile:document.getElementById('suMobile').value.trim(),
+    email:document.getElementById('suEmail').value.trim(),
+    password:document.getElementById('suPass').value.trim(),
+    ref:document.getElementById('suRef').value.trim()
+  };
+  const confirm=document.getElementById('suConfirm').value.trim();
+  if(!vals.username||!vals.gameName||!vals.uid||!vals.mobile||!vals.email||!vals.password){showToast('Fill all required fields','error');return;}
+  if(vals.password!==confirm){showToast('Passwords do not match','error');return;}
+  const users=DB.getUsers();
+  if(users[vals.email]){showToast('Email already registered','error');return;}
+  vals.coins=0;vals.kills=0;vals.wins=0;vals.matches=0;vals.banned=false;
+  vals.refCode='FF'+Math.random().toString(36).substr(2,6).toUpperCase();
+  users[vals.email]=vals;DB.saveUsers(users);
+  currentUser=vals;DB.set('ffa_session',vals.email);
+  showToast('Signup Successful ✓');setTimeout(showApp,700);
+}
+
+function doLogout(){DB.set('ffa_session',null);location.reload();}
+
+function showApp(){
+  document.getElementById('authScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  refreshUser();loadMatches();loadLeaderboard();loadWalletHistory();loadChats();
+  const s=DB.getSettings();
+  if(s.youtube)document.getElementById('ytBtn').href=s.youtube;
+  document.getElementById('refCode').textContent=currentUser.refCode||'FFXXXXX';
+}
+
+function refreshUser(){
+  const users=DB.getUsers();
+  if(users[currentUser.email])currentUser=users[currentUser.email];
+  document.getElementById('coinDisplay').textContent=currentUser.coins||0;
+  document.getElementById('walletBal').textContent=currentUser.coins||0;
+  document.getElementById('homeKills').textContent=currentUser.kills||0;
+  document.getElementById('homeWins').textContent=currentUser.wins||0;
+  document.getElementById('homeMatches').textContent=currentUser.matches||0;
+  document.getElementById('profName').textContent=currentUser.username;
+  document.getElementById('profUID').textContent='UID: '+(currentUser.uid||'');
+  document.getElementById('profKills').textContent=currentUser.kills||0;
+  document.getElementById('profWins').textContent=currentUser.wins||0;
+  document.getElementById('profMatches').textContent=currentUser.matches||0;
+}
+
+function openPage(id,navIdx){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(navIdx!==undefined)document.getElementById('nav'+navIdx).classList.add('active');
+  const titles={pageHome:'🔥 FF ARENA',pageWallet:'💰 WALLET',pageLeaderboard:'🏅 LEADERBOARD',pageReferral:'🎁 REFERRAL',pageProfile:'👤 PROFILE',pageChat:'💬 SUPPORT'};
+  document.getElementById('topbarTitle').textContent=titles[id]||'🔥 FF ARENA';
+  if(id==='pageWallet'){refreshUser();loadWalletHistory();}
+  if(id==='pageLeaderboard')loadLeaderboard();
+  if(id==='pageChat')loadChats();
+}
+
+function loadMatches(){
+  const matches=DB.getMatches();
+  const el=document.getElementById('matchListHome');
+  if(!matches.length){el.innerHTML='<div class="empty-state"><span class="es-icon">🏆</span><p>No tournaments yet</p></div>';return;}
+  el.innerHTML=matches.map(m=>{
+    const bc=m.status==='Live'?'badge-live':m.status==='Active'?'badge-active':'badge-upcoming';
+    const result=m.resultId?`<div class="match-result">🎯 Room ID: <b>${m.resultId}</b>${m.resultPass?` &nbsp;|&nbsp; 🔐 Pass: <b>${m.resultPass}</b>`:''}</div>`:'';
+    return `<div class="match-card">
+      <div class="match-title">${m.title}</div>
+      <div class="match-badges"><span class="badge ${bc}">${m.status}</span><span class="badge" style="background:rgba(255,215,0,0.1);color:var(--gold);border:1px solid rgba(255,215,0,0.2);">${m.mode||'Solo'}</span></div>
+      <div class="match-meta">📅 ${m.date||'TBA'} &nbsp;⏰ ${m.time||'TBA'}</div>
+      <div class="match-meta">🗺 Map: ${m.map||'Bermuda'}</div>
+      <div class="match-fee">🪙 Entry: ${m.entry||0} &nbsp;|&nbsp; 🏆 Prize: ${m.prize||0} Coins</div>
+      ${result}
+      ${!m.resultId?`<button class="btn-join" onclick="joinMatch('${m.id}')">JOIN MATCH</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function joinMatch(mid){
+  refreshUser();
+  const matches=DB.getMatches();
+  const m=matches.find(x=>x.id===mid);
+  if(!m){showToast('Match not found','error');return;}
+  const fee=parseInt(m.entry)||0;
+  if(currentUser.coins<fee){showToast('Not enough coins!','error');return;}
+  const users=DB.getUsers();
+  users[currentUser.email].coins-=fee;
+  users[currentUser.email].matches=(users[currentUser.email].matches||0)+1;
+  DB.saveUsers(users);currentUser=users[currentUser.email];
+  const reqs=DB.getRequests();
+  reqs.push({id:Date.now().toString(),type:'match_join',user:currentUser.email,username:currentUser.username,matchTitle:m.title,amount:fee,date:new Date().toLocaleString(),status:'confirmed'});
+  DB.saveRequests(reqs);refreshUser();
+  showToast('Joined! 🎮 Entry fee deducted');loadMatches();
+}
+
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='depositModal'){
+    const s=DB.getSettings();
+    document.getElementById('adminPayNums').innerHTML=`<b>💳 Send payment to:</b><br>📱 Easypaisa: <b>${s.ep||'Not set'}</b><br>📱 JazzCash: <b>${s.jc||'Not set'}</b>`;
+  }
+  if(id==='editProfileModal'){
+    document.getElementById('epUsername').value=currentUser.username||'';
+    document.getElementById('epGameName').value=currentUser.gameName||'';
+    document.getElementById('epMobile').value=currentUser.mobile||'';
+  }
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function selectDepMethod(m){
+  depSelectedMethod=m;
+  document.getElementById('depEP').classList.toggle('selected',m==='easypaisa');
+  document.getElementById('depJC').classList.toggle('selected',m==='jazzcash');
+}
+function selectWdMethod(m){
+  wdSelectedMethod=m;
+  document.getElementById('wdEP').classList.toggle('selected',m==='easypaisa');
+  document.getElementById('wdJC').classList.toggle('selected',m==='jazzcash');
+}
+
+function submitDeposit(){
+  const txid=document.getElementById('depTxID').value.trim();
+  const sender=document.getElementById('depSender').value.trim();
+  const amt=document.getElementById('depAmount').value.trim();
+  if(!txid||!sender||!amt){showToast('Fill all fields','error');return;}
+  const reqs=DB.getRequests();
+  reqs.push({id:Date.now().toString(),type:'deposit',user:currentUser.email,username:currentUser.username,method:depSelectedMethod,txId:txid,senderNum:sender,amount:parseInt(amt),date:new Date().toLocaleString(),status:'pending'});
+  DB.saveRequests(reqs);closeModal('depositModal');
+  document.getElementById('depTxID').value='';document.getElementById('depSender').value='';document.getElementById('depAmount').value='';
+  showToast('Deposit request has been added ✓');loadWalletHistory();
+}
+
+function submitWithdraw(){
+  const amt=parseInt(document.getElementById('wdAmount').value)||0;
+  const num=document.getElementById('wdNumber').value.trim();
+  const name=document.getElementById('wdName').value.trim();
+  if(!amt||!num||!name){showToast('Fill all fields','error');return;}
+  refreshUser();
+  if((currentUser.coins||0)<amt){showToast('Not enough coins!','error');return;}
+  const reqs=DB.getRequests();
+  reqs.push({id:Date.now().toString(),type:'withdraw',user:currentUser.email,username:currentUser.username,method:wdSelectedMethod,amount:amt,walletNum:num,holderName:name,date:new Date().toLocaleString(),status:'pending'});
+  DB.saveRequests(reqs);closeModal('withdrawModal');
+  document.getElementById('wdAmount').value='';document.getElementById('wdNumber').value='';document.getElementById('wdName').value='';
+  showToast('Withdrawal request added ✓');loadWalletHistory();
+}
+
+function loadWalletHistory(){
+  const reqs=DB.getRequests().filter(r=>r.user===currentUser.email);
+  const el=document.getElementById('txHistory');
+  if(!reqs.length){el.innerHTML='<div class="empty-state"><span class="es-icon">📋</span><p>No transactions yet</p></div>';return;}
+  el.innerHTML=[...reqs].reverse().map(r=>{
+    const icon=r.type==='deposit'?'⬆':r.type==='withdraw'?'⬇':'🎮';
+    const isPos=r.type==='deposit'&&r.status==='approved';
+    const label=r.type==='deposit'?`Deposit (${r.method})`:r.type==='withdraw'?`Withdraw (${r.method})`:`Match: ${r.matchTitle||''}`;
+    const sc=r.status==='approved'?'status-approved':r.status==='rejected'?'status-rejected':r.status==='confirmed'?'status-approved':'status-pending';
+    return `<div class="hist-item">
+      <div style="font-size:22px;">${icon}</div>
+      <div class="hist-info"><div class="hist-label">${label}</div><div class="hist-date">${r.date}</div></div>
+      <div style="text-align:right;">
+        <div class="hist-amount ${isPos?'pos':'neg'}">${isPos?'+':'-'}${r.amount}🪙</div>
+        <span class="status-tag ${sc}">${r.status.toUpperCase()}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function loadLeaderboard(){
+  const users=Object.values(DB.getUsers()).sort((a,b)=>(b.kills||0)-(a.kills||0));
+  const el=document.getElementById('leaderboardList');
+  if(!users.length){el.innerHTML='<div class="empty-state"><span class="es-icon">🏅</span><p>No players yet</p></div>';return;}
+  el.innerHTML=users.map((u,i)=>{
+    const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+    return `<div class="lb-row">
+      <div class="lb-rank ${rc}">${medal}</div>
+      <div class="lb-info"><div class="lb-name">${u.username}</div><div class="lb-sub">${u.gameName||''} • ${u.matches||0} matches</div></div>
+      <div class="lb-kills">💀 ${u.kills||0}</div>
+    </div>`;
+  }).join('');
+}
+
+function saveProfile(){
+  const users=DB.getUsers();
+  const eu=document.getElementById('epUsername').value.trim();
+  const eg=document.getElementById('epGameName').value.trim();
+  const em=document.getElementById('epMobile').value.trim();
+  if(eu)users[currentUser.email].username=eu;
+  if(eg)users[currentUser.email].gameName=eg;
+  if(em)users[currentUser.email].mobile=em;
+  DB.saveUsers(users);currentUser=users[currentUser.email];
+  closeModal('editProfileModal');refreshUser();showToast('Profile updated ✓');
+}
+
+function copyRefCode(){navigator.clipboard.writeText(currentUser.refCode||'').catch(()=>{});showToast('Code copied!');}
+function copyAppLink(){navigator.clipboard.writeText('https://ffarena.app/join').catch(()=>{});showToast('Link copied!');}
+
+function loadChats(){
+  const chats=DB.getChats();
+  const myChats=chats[currentUser.email]||[];
+  const el=document.getElementById('chatMessages');
+  if(!myChats.length){el.innerHTML='<div class="empty-state"><span class="es-icon">💬</span><p>Send a message to admin</p></div>';return;}
+  el.innerHTML=myChats.map(m=>`<div class="msg ${m.from==='user'?'msg-user':'msg-admin'}">${m.text}<div class="msg-time">${m.time}</div></div>`).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const txt=inp.value.trim();if(!txt)return;
+  const chats=DB.getChats();
+  if(!chats[currentUser.email])chats[currentUser.email]=[];
+  chats[currentUser.email].push({from:'user',text:txt,time:new Date().toLocaleTimeString()});
+  DB.saveChats(chats);inp.value='';loadChats();
+}
+
+document.getElementById('chatInput').addEventListener('keypress',e=>{if(e.key==='Enter')sendChat();});
+
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+});
+
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(type==='error'?' error':'');
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+setInterval(()=>{
+  if(!currentUser)return;
+  const users=DB.getUsers();
+  if(users[currentUser.email]){
+    if(users[currentUser.email].banned){showBan();return;}
+    currentUser=users[currentUser.email];refreshUser();
+  }
+  const s=DB.getSettings();
+  if(s.youtube)document.getElementById('ytBtn').href=s.youtube;
+},5000);
+</script>
+</body>
+</html>
